@@ -1,0 +1,77 @@
+ping 10.129.1.1
+
+
+export ip=10.129.1.1
+
+
+sudo nmap -sV -O -T4 -A -sC -p- $ip -oA nmap
+
+locate etc/hosts
+10.129.1.1 brainfuck.htb --> wordpress 4.7.3
+10.129.1.1 sup3rs3cr3t.brainfuck.htb
+10.129.1.1 www.brainfuck.htb
+
+searchsploit wordpress 4.7.3
+WordPress Core < 4.7.4 - Unauthorized Password Reset                      | linux/webapps/41963.txt
+locate linux/webapps/41963.txt
+
+wpscan --url https://brainfuck.htb -e --disable-tls-checks
+
+usernames from wordpress site:
+admin
+orestis@brainfuck.htb
+administrator
+
+telnet 10.129.1.1 25 --> no response
+telnet 10.129.1.1 143
+
+snmpwalk -c public -v1 10.129.1.1
+snmp-check -t 10.129.1.1 -c public
+curl -k 'imaps://10.129.1.1/' --user orestis:password
+
+
+python3 dirsearch.py -u https://sup3rs3cr3t.brainfuck.htb -w raft-large-directories.txt -e * -r -b
+
+-----------------NMAP Result ---------------------------------
+udo nmap -sV -O -T4 -A -sC -p- $ip -oA nmap
+Starting Nmap 7.80 ( https://nmap.org ) at 2021-01-08 03:38 UTC
+Nmap scan report for 10.129.1.1
+Host is up (0.15s latency).
+Not shown: 65530 filtered ports
+PORT    STATE SERVICE  VERSION
+22/tcp  open  ssh      OpenSSH 7.2p2 Ubuntu 4ubuntu2.1 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   2048 94:d0:b3:34:e9:a5:37:c5:ac:b9:80:df:2a:54:a5:f0 (RSA)
+|   256 6b:d5:dc:15:3a:66:7a:f4:19:91:5d:73:85:b2:4c:b2 (ECDSA)
+|_  256 23:f5:a3:33:33:9d:76:d5:f2:ea:69:71:e3:4e:8e:02 (ED25519)
+25/tcp  open  smtp?
+|_smtp-commands: Couldn't establish connection on port 25
+110/tcp open  pop3     Dovecot pop3d
+|_pop3-capabilities: SASL(PLAIN) AUTH-RESP-CODE UIDL USER PIPELINING TOP RESP-CODES CAPA
+143/tcp open  imap     Dovecot imapd
+|_imap-capabilities: LOGIN-REFERRALS ID Pre-login IDLE more have ENABLE post-login OK capabilities listed IMAP4rev1 AUTH=PLAINA0001 SASL-IR LITERAL+
+443/tcp open  ssl/http nginx 1.10.0 (Ubuntu)
+|_http-server-header: nginx/1.10.0 (Ubuntu)
+|_http-title: Welcome to nginx!
+| ssl-cert: Subject: commonName=brainfuck.htb/organizationName=Brainfuck Ltd./stateOrProvinceName=Attica/countryName=GR
+| Subject Alternative Name: DNS:www.brainfuck.htb, DNS:sup3rs3cr3t.brainfuck.htb
+| Not valid before: 2017-04-13T11:19:29
+|_Not valid after:  2027-04-11T11:19:29
+|_ssl-date: TLS randomness does not represent time
+| tls-alpn: 
+|_  http/1.1
+| tls-nextprotoneg: 
+|_  http/1.1
+Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port
+Aggressive OS guesses: Linux 3.10 - 4.11 (92%), Linux 3.12 (92%), Linux 3.13 (92%), Linux 3.13 or 4.2 (92%), Linux 3.16 (92%), Linux 3.16 - 4.6 (92%), Linux 3.2 - 4.9 (92%), Linux 3.8 - 3.11 (92%), Linux 4.2 (92%), Linux 4.4 (92%)
+No exact OS matches for host (test conditions non-ideal).
+Network Distance: 2 hops
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE (using port 110/tcp)
+HOP RTT       ADDRESS
+1   149.70 ms 10.10.14.1
+2   150.04 ms 10.129.1.1
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 373.49 seconds

